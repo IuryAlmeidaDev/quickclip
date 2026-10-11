@@ -28,10 +28,17 @@ def build_ffmpeg_filter(
     safe_game = " ".join(game_title.strip().replace("'", "").replace(":", ""))
     safe_sub = subtitle.replace("'", "").replace(":", "")
 
+    box_w = 880
+    box_x = (target_width - box_w) // 2
+    inner_w = 868
+    inner_x = (target_width - inner_w) // 2
+    divider_w = 960
+    divider_x = (target_width - divider_w) // 2
+
     header_box = (
-        "drawbox=x=(w-880)/2:y=40:w=880:h=136:color=black@0.78:t=fill,"
-        "drawbox=x=(w-880)/2:y=40:w=880:h=136:color=#F59E0B@0.95:t=3,"
-        "drawbox=x=(w-868)/2:y=46:w=868:h=124:color=#B45309@0.5:t=1"
+        f"drawbox=x={box_x}:y=40:w={box_w}:h=136:color=black@0.78:t=fill,"
+        f"drawbox=x={box_x}:y=40:w={box_w}:h=136:color=#F59E0B@0.95:t=3,"
+        f"drawbox=x={inner_x}:y=46:w={inner_w}:h=124:color=#B45309@0.5:t=1"
     )
     title_text = (
         f"drawtext=text='—  {safe_game}  —':fontsize=30:fontcolor=#FDE047:"
@@ -41,7 +48,7 @@ def build_ffmpeg_filter(
         f"drawtext=text='{safe_sub}':fontsize=54:fontcolor=white:"
         "x=(w-text_w)/2:y=100:borderw=2:bordercolor=black:shadowcolor=black@0.9:shadowx=3:shadowy=3"
     )
-    divider = "drawbox=x=(w-960)/2:y=1078:w=960:h=4:color=#F59E0B@0.75:t=fill"
+    divider = f"drawbox=x={divider_x}:y=1078:w={divider_w}:h=4:color=#F59E0B@0.75:t=fill"
 
     return (
         f"[0:v]split=3[bg_raw][zoom_raw][full_raw];"
