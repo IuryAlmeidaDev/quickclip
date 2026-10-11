@@ -238,7 +238,7 @@ def test_quickclip_app_process_pipeline_success(
     mock_wait.assert_called_once_with(Path("/captures/game.mp4"), timeout=12.0)
     mock_convert.assert_called_once_with(Path("/captures/game.mp4"), app.config.output_dir, app.config.ffmpeg_bin)
     mock_open_folder.assert_called_once_with(Path("/output/game_short.mp4"))
-    app.widget.set_recording_state.assert_called_once_with(False)
+    app.widget.root.after.assert_called_once_with(0, app.widget.set_recording_state, False)
 
 
 @patch("quickclip.app.FloatingRecorderWidget")
@@ -253,7 +253,7 @@ def test_quickclip_app_process_pipeline_no_capture(mock_sleep, mock_find, mock_c
     app.process_pipeline()
 
     mock_convert.assert_not_called()
-    app.widget.set_recording_state.assert_called_once_with(False)
+    app.widget.root.after.assert_called_once_with(0, app.widget.set_recording_state, False)
 
 
 @patch("quickclip.app.FloatingRecorderWidget")
@@ -270,7 +270,7 @@ def test_quickclip_app_process_pipeline_not_ready(mock_sleep, mock_find, mock_wa
     app.process_pipeline()
 
     mock_convert.assert_not_called()
-    app.widget.set_recording_state.assert_called_once_with(False)
+    app.widget.root.after.assert_called_once_with(0, app.widget.set_recording_state, False)
 
 
 @patch("quickclip.app.FloatingRecorderWidget")
@@ -287,7 +287,7 @@ def test_quickclip_app_process_pipeline_exception(mock_sleep, mock_find, mock_wa
 
     app.process_pipeline()
 
-    app.widget.set_recording_state.assert_called_once_with(False)
+    app.widget.root.after.assert_called_once_with(0, app.widget.set_recording_state, False)
 
 
 @patch("quickclip.app.FloatingRecorderWidget")

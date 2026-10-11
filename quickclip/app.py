@@ -3,7 +3,7 @@ import time
 from quickclip.capture import find_latest_capture, trigger_game_dvr_record, wait_for_file_ready
 from quickclip.config import get_config
 from quickclip.processor import convert_to_shorts
-from quickclip.publisher import open_output_folder, open_youtube_upload
+from quickclip.publisher import open_output_folder
 from quickclip.ui import FloatingRecorderWidget
 
 
@@ -47,7 +47,7 @@ class QuickClipApp:
         time.sleep(1.0)
         latest = find_latest_capture(self.config.captures_dir, self.record_start_time)
         if not latest:
-            self.widget.set_recording_state(False)
+            self.widget.root.after(0, self.widget.set_recording_state, False)
             return
 
         ready = wait_for_file_ready(latest, timeout=12.0)
@@ -57,7 +57,7 @@ class QuickClipApp:
                 open_output_folder(short_path)
             except Exception as e:
                 print(f"Erro ao processar: {e}")
-        self.widget.set_recording_state(False)
+        self.widget.root.after(0, self.widget.set_recording_state, False)
 
     def open_output(self):
         open_output_folder(self.config.output_dir)
