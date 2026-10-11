@@ -7,3 +7,6 @@ def test_config_paths():
     assert Path(cfg.captures_dir).exists()
     assert Path(cfg.ffmpeg_bin).exists()
     assert Path(cfg.output_dir).name == "shorts"
+    assert Path(cfg.music_dir).exists()
+    assert Path(cfg.music_dir).name == "music"
+

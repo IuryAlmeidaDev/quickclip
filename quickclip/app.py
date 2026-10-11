@@ -58,8 +58,14 @@ class QuickClipApp:
         ready = wait_for_file_ready(latest, timeout=12.0)
         if ready:
             try:
-                short_path = convert_to_shorts(latest, self.config.output_dir, self.config.ffmpeg_bin)
+                short_path = convert_to_shorts(
+                    latest,
+                    self.config.output_dir,
+                    self.config.ffmpeg_bin,
+                    music_dir=self.config.music_dir,
+                )
                 open_output_folder(short_path)
+
             except Exception as e:
                 print(f"Error processing capture: {e}")
         self.widget.root.after(0, self.widget.set_recording_state, False)

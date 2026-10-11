@@ -279,7 +279,14 @@ def test_quickclip_app_process_pipeline_success(
     mock_sleep.assert_called_once_with(1.0)
     mock_find.assert_called_once_with(app.config.captures_dir, app.record_start_time)
     mock_wait.assert_called_once_with(Path("/captures/game.mp4"), timeout=12.0)
-    mock_convert.assert_called_once_with(Path("/captures/game.mp4"), app.config.output_dir, app.config.ffmpeg_bin)
+    mock_convert.assert_called_once_with(
+
+        Path("/captures/game.mp4"),
+        app.config.output_dir,
+        app.config.ffmpeg_bin,
+        music_dir=app.config.music_dir,
+    )
+
     mock_open_folder.assert_called_once_with(Path("/output/game_short.mp4"))
     app.widget.root.after.assert_called_once_with(0, app.widget.set_recording_state, False)
 

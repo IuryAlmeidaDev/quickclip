@@ -6,6 +6,7 @@ import imageio_ffmpeg
 class Config:
     captures_dir: Path
     output_dir: Path
+    music_dir: Path
     ffmpeg_bin: Path
 
 def get_config() -> Config:
@@ -18,9 +19,14 @@ def get_config() -> Config:
     output_dir = base_dir / "output" / "shorts"
     output_dir.mkdir(parents=True, exist_ok=True)
 
+    music_dir = base_dir / "assets" / "music"
+    music_dir.mkdir(parents=True, exist_ok=True)
+
     ffmpeg_bin = Path(imageio_ffmpeg.get_ffmpeg_exe())
     return Config(
         captures_dir=captures_dir,
         output_dir=output_dir,
+        music_dir=music_dir,
         ffmpeg_bin=ffmpeg_bin,
     )
+
