@@ -50,6 +50,10 @@ def test_convert_to_shorts_success(mock_run, tmp_path):
     assert cmd[0] == "ffmpeg"
     assert str(input_file) in cmd
     assert str(result_path) in cmd
+    assert "-pix_fmt" in cmd
+    assert "yuv420p" in cmd
+    assert "-movflags" in cmd
+    assert "+faststart" in cmd
 
 
 @patch("subprocess.run")

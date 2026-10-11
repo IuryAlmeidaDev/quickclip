@@ -3,7 +3,7 @@ import time
 from quickclip.capture import find_latest_capture, trigger_game_dvr_record, wait_for_file_ready
 from quickclip.config import get_config
 from quickclip.processor import convert_to_shorts
-from quickclip.publisher import open_output_folder
+from quickclip.publisher import open_output_folder, open_youtube_upload
 from quickclip.ui import FloatingRecorderWidget
 
 
@@ -15,6 +15,7 @@ class QuickClipApp:
         self.widget = FloatingRecorderWidget(
             on_toggle_record=self.toggle_record,
             on_open_folder=self.open_output,
+            on_open_youtube=self.open_youtube,
         )
 
     def toggle_record(self):
@@ -40,6 +41,10 @@ class QuickClipApp:
     def stop_record(self):
         self.is_recording = False
         trigger_game_dvr_record()
+        if (time.time() - self.record_start_time) < 2.0:
+            self.widget.set_ignored_state("Muito curto")
+            self.widget.root.after(2000, self.widget.set_recording_state, False)
+            return
         self.widget.set_processing_state()
         threading.Thread(target=self.process_pipeline, daemon=True).start()
 
@@ -61,6 +66,9 @@ class QuickClipApp:
 
     def open_output(self):
         open_output_folder(self.config.output_dir)
+
+    def open_youtube(self):
+        open_youtube_upload()
 
     def run(self):
         self.widget.run()

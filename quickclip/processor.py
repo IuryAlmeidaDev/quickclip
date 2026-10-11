@@ -55,6 +55,10 @@ def convert_to_shorts(input_path: Path, output_dir: Path, ffmpeg_bin: Path) -> P
         "aac",
         "-b:a",
         "192k",
+        "-pix_fmt",
+        "yuv420p",
+        "-movflags",
+        "+faststart",
         str(output_path),
     ]
 

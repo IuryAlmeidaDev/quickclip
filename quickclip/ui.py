@@ -28,16 +28,18 @@ class FloatingRecorderWidget:
         self,
         on_toggle_record: Callable[[], None],
         on_open_folder: Callable[[], None],
+        on_open_youtube: Optional[Callable[[], None]] = None,
         root: Optional[Union[tk.Tk, tk.Toplevel]] = None,
     ):
         self.root = root if root is not None else tk.Tk()
         self.on_toggle_record = on_toggle_record
         self.on_open_folder = on_open_folder
+        self.on_open_youtube = on_open_youtube if on_open_youtube is not None else (lambda: None)
 
         self.root.title("QuickClip")
         self.root.overrideredirect(True)
         self.root.attributes("-topmost", True)
-        self.root.geometry("180x42+50+50")
+        self.root.geometry("200x42+50+50")
         self.root.configure(bg="#121214")
 
         # Apply Win32 NOACTIVATE style so clicks don't steal game focus
@@ -85,6 +87,18 @@ class FloatingRecorderWidget:
         )
         self.btn_folder.pack(side="right", padx=4)
 
+        self.btn_youtube = tk.Button(
+            self.frame,
+            text="▶",
+            bg="#18181b",
+            fg="#ef4444",
+            font=("Segoe UI", 9),
+            relief="flat",
+            cursor="hand2",
+            command=self.on_open_youtube,
+        )
+        self.btn_youtube.pack(side="right", padx=2)
+
         # Dragging bindings
         self.frame.bind("<Button-1>", self._start_drag)
         self.frame.bind("<B1-Motion>", self._do_drag)
@@ -110,15 +124,17 @@ class FloatingRecorderWidget:
         self.btn_record.config(text="⏳", bg="#27272a", fg="#fbbf24")
         self.lbl_status.config(text="Criando...", fg="#fbbf24")
 
+    def set_ignored_state(self, message: str = "Muito curto"):
+        self.btn_record.config(text="⚪ REC", bg="#27272a", fg="#ef4444")
+        self.lbl_status.config(text=message, fg="#f87171")
+
     def _start_drag(self, event):
-        self._drag_data["x"] = event.x
-        self._drag_data["y"] = event.y
+        self._drag_data["x"] = event.x_root - self.root.winfo_x()
+        self._drag_data["y"] = event.y_root - self.root.winfo_y()
 
     def _do_drag(self, event):
-        dx = event.x - self._drag_data["x"]
-        dy = event.y - self._drag_data["y"]
-        x = self.root.winfo_x() + dx
-        y = self.root.winfo_y() + dy
+        x = event.x_root - self._drag_data["x"]
+        y = event.y_root - self._drag_data["y"]
         self.root.geometry(f"+{x}+{y}")
 
     def run(self):

@@ -29,7 +29,9 @@ from quickclip.app import QuickClipApp, main
 
 
 class DummyEvent:
-    def __init__(self, x, y):
+    def __init__(self, x_root=0, y_root=0, x=0, y=0):
+        self.x_root = x_root
+        self.y_root = y_root
         self.x = x
         self.y = y
 
@@ -59,42 +61,50 @@ def toplevel_root(shared_tk):
 
 @pytest.fixture
 def mock_callbacks():
-    return MagicMock(), MagicMock()
+    return MagicMock(), MagicMock(), MagicMock()
 
 
 def test_floating_recorder_widget_init(mock_callbacks, toplevel_root):
-    toggle_cb, folder_cb = mock_callbacks
+    toggle_cb, folder_cb, youtube_cb = mock_callbacks
     with patch("ctypes.windll.user32") as mock_user32:
         mock_user32.GetWindowLongW.return_value = 0
         widget = FloatingRecorderWidget(
             on_toggle_record=toggle_cb,
             on_open_folder=folder_cb,
+            on_open_youtube=youtube_cb,
             root=toplevel_root,
         )
         assert widget.btn_record["text"] == "⚪ REC"
         assert widget.lbl_status["text"] == "00:00"
         assert widget.btn_folder["text"] == "📁"
+        assert widget.btn_youtube["text"] == "▶"
         assert widget.on_toggle_record == toggle_cb
         assert widget.on_open_folder == folder_cb
+        assert widget.on_open_youtube == youtube_cb
 
 
 def test_floating_recorder_widget_default_root(mock_callbacks):
-    toggle_cb, folder_cb = mock_callbacks
+    toggle_cb, folder_cb, youtube_cb = mock_callbacks
     with patch("ctypes.windll.user32"), patch("quickclip.ui.tk.Tk") as mock_tk_cls:
         mock_root = MagicMock()
         mock_tk_cls.return_value = mock_root
-        widget = FloatingRecorderWidget(on_toggle_record=toggle_cb, on_open_folder=folder_cb)
+        widget = FloatingRecorderWidget(
+            on_toggle_record=toggle_cb,
+            on_open_folder=folder_cb,
+            on_open_youtube=youtube_cb,
+        )
         assert widget.root == mock_root
         mock_tk_cls.assert_called_once()
 
 
 def test_floating_recorder_widget_apply_win32_styles(mock_callbacks, toplevel_root):
-    toggle_cb, folder_cb = mock_callbacks
+    toggle_cb, folder_cb, youtube_cb = mock_callbacks
     with patch("ctypes.windll.user32") as mock_user32:
         mock_user32.GetWindowLongW.return_value = 0x1000
         widget = FloatingRecorderWidget(
             on_toggle_record=toggle_cb,
             on_open_folder=folder_cb,
+            on_open_youtube=youtube_cb,
             root=toplevel_root,
         )
         expected_flag = 0x1000 | WS_EX_TOPMOST | WS_EX_TOOLWINDOW | WS_EX_NOACTIVATE
@@ -102,17 +112,23 @@ def test_floating_recorder_widget_apply_win32_styles(mock_callbacks, toplevel_ro
 
 
 def test_floating_recorder_widget_state_transitions(mock_callbacks, toplevel_root):
-    toggle_cb, folder_cb = mock_callbacks
+    toggle_cb, folder_cb, youtube_cb = mock_callbacks
     with patch("ctypes.windll.user32"):
         widget = FloatingRecorderWidget(
             on_toggle_record=toggle_cb,
             on_open_folder=folder_cb,
+            on_open_youtube=youtube_cb,
             root=toplevel_root,
         )
         # Transition to Recording
         widget.set_recording_state(True, "01:30")
         assert widget.btn_record["text"] == "⏹ STOP"
         assert widget.lbl_status["text"] == "01:30"
+
+        # Transition to Ignored
+        widget.set_ignored_state("Muito curto")
+        assert widget.btn_record["text"] == "⚪ REC"
+        assert widget.lbl_status["text"] == "Muito curto"
 
         # Transition to Processing
         widget.set_processing_state()
@@ -126,34 +142,36 @@ def test_floating_recorder_widget_state_transitions(mock_callbacks, toplevel_roo
 
 
 def test_floating_recorder_widget_drag(mock_callbacks, toplevel_root):
-    toggle_cb, folder_cb = mock_callbacks
+    toggle_cb, folder_cb, youtube_cb = mock_callbacks
     with patch("ctypes.windll.user32"):
         widget = FloatingRecorderWidget(
             on_toggle_record=toggle_cb,
             on_open_folder=folder_cb,
+            on_open_youtube=youtube_cb,
             root=toplevel_root,
         )
-        start_event = DummyEvent(15, 25)
-        widget._start_drag(start_event)
-        assert widget._drag_data["x"] == 15
-        assert widget._drag_data["y"] == 25
-
-        with patch.object(widget.root, "geometry") as mock_geo, \
-             patch.object(widget.root, "winfo_x", return_value=100), \
+        with patch.object(widget.root, "winfo_x", return_value=100), \
              patch.object(widget.root, "winfo_y", return_value=200):
-            motion_event = DummyEvent(25, 30)
+            start_event = DummyEvent(x_root=115, y_root=225)
+            widget._start_drag(start_event)
+            assert widget._drag_data["x"] == 15
+            assert widget._drag_data["y"] == 25
+
+        with patch.object(widget.root, "geometry") as mock_geo:
+            motion_event = DummyEvent(x_root=125, y_root=230)
             widget._do_drag(motion_event)
-            # dx = 25 - 15 = 10 -> x = 110
-            # dy = 30 - 25 = 5 -> y = 205
+            # x = 125 - 15 = 110
+            # y = 230 - 25 = 205
             mock_geo.assert_called_once_with("+110+205")
 
 
 def test_floating_recorder_widget_run(mock_callbacks, toplevel_root):
-    toggle_cb, folder_cb = mock_callbacks
+    toggle_cb, folder_cb, youtube_cb = mock_callbacks
     with patch("ctypes.windll.user32"):
         widget = FloatingRecorderWidget(
             on_toggle_record=toggle_cb,
             on_open_folder=folder_cb,
+            on_open_youtube=youtube_cb,
             root=toplevel_root,
         )
         with patch.object(widget.root, "mainloop") as mock_mainloop:
@@ -174,6 +192,7 @@ def test_quickclip_app_init(mock_get_cfg, mock_widget_cls):
     mock_widget_cls.assert_called_once_with(
         on_toggle_record=app.toggle_record,
         on_open_folder=app.open_output,
+        on_open_youtube=app.open_youtube,
     )
 
 
@@ -197,10 +216,13 @@ def test_quickclip_app_start_record(mock_time, mock_trigger, mock_widget_cls):
 @patch("quickclip.app.FloatingRecorderWidget")
 @patch("quickclip.app.trigger_game_dvr_record")
 @patch("quickclip.app.threading.Thread")
-def test_quickclip_app_stop_record(mock_thread_cls, mock_trigger, mock_widget_cls):
+@patch("quickclip.app.time.time")
+def test_quickclip_app_stop_record(mock_time, mock_thread_cls, mock_trigger, mock_widget_cls):
+    mock_time.return_value = 1005.0
     app = QuickClipApp()
     app.widget = MagicMock()
     app.is_recording = True
+    app.record_start_time = 1000.0
 
     mock_thread_instance = MagicMock()
     mock_thread_cls.return_value = mock_thread_instance
@@ -212,6 +234,27 @@ def test_quickclip_app_stop_record(mock_thread_cls, mock_trigger, mock_widget_cl
     app.widget.set_processing_state.assert_called_once()
     mock_thread_cls.assert_called_once_with(target=app.process_pipeline, daemon=True)
     mock_thread_instance.start.assert_called_once()
+
+
+@patch("quickclip.app.FloatingRecorderWidget")
+@patch("quickclip.app.trigger_game_dvr_record")
+@patch("quickclip.app.threading.Thread")
+@patch("quickclip.app.time.time")
+def test_quickclip_app_stop_record_too_short(mock_time, mock_thread_cls, mock_trigger, mock_widget_cls):
+    mock_time.return_value = 1001.0
+    app = QuickClipApp()
+    app.widget = MagicMock()
+    app.is_recording = True
+    app.record_start_time = 1000.0  # elapsed 1.0s (< 2.0s)
+
+    app.stop_record()
+
+    assert app.is_recording is False
+    mock_trigger.assert_called_once()
+    app.widget.set_ignored_state.assert_called_once_with("Muito curto")
+    app.widget.root.after.assert_called_once_with(2000, app.widget.set_recording_state, False)
+    mock_thread_cls.assert_not_called()
+    app.widget.set_processing_state.assert_not_called()
 
 
 @patch("quickclip.app.FloatingRecorderWidget")
@@ -296,6 +339,14 @@ def test_quickclip_app_open_output(mock_open_folder, mock_widget_cls):
     app = QuickClipApp()
     app.open_output()
     mock_open_folder.assert_called_once_with(app.config.output_dir)
+
+
+@patch("quickclip.app.FloatingRecorderWidget")
+@patch("quickclip.app.open_youtube_upload")
+def test_quickclip_app_open_youtube(mock_open_yt, mock_widget_cls):
+    app = QuickClipApp()
+    app.open_youtube()
+    mock_open_yt.assert_called_once()
 
 
 @patch("quickclip.app.FloatingRecorderWidget")
