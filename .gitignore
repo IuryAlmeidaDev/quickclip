@@ -9,3 +9,7 @@ output/shorts/*.mp4
 *.mp4
 venv/
 .venv/
+build/
+dist/
+*.exe
+

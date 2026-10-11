@@ -1,3 +1,4 @@
+import sys
 from dataclasses import dataclass
 from pathlib import Path
 import imageio_ffmpeg
@@ -15,18 +16,25 @@ def get_config() -> Config:
     if not captures_dir.exists():
         captures_dir.mkdir(parents=True, exist_ok=True)
 
-    base_dir = Path(__file__).resolve().parent.parent
+    if getattr(sys, "frozen", False):
+        base_dir = Path(sys.executable).resolve().parent
+    else:
+        base_dir = Path(__file__).resolve().parent.parent
+
     output_dir = base_dir / "output" / "shorts"
     output_dir.mkdir(parents=True, exist_ok=True)
 
     music_dir = base_dir / "assets" / "music"
     music_dir.mkdir(parents=True, exist_ok=True)
 
-    ffmpeg_bin = Path(imageio_ffmpeg.get_ffmpeg_exe())
+    try:
+        ffmpeg_bin = Path(imageio_ffmpeg.get_ffmpeg_exe())
+    except Exception:
+        ffmpeg_bin = Path(getattr(sys, "_MEIPASS", ".")) / "ffmpeg.exe"
+
     return Config(
         captures_dir=captures_dir,
         output_dir=output_dir,
         music_dir=music_dir,
         ffmpeg_bin=ffmpeg_bin,
     )
-
