@@ -1,3 +1,4 @@
+import ctypes
 import threading
 import time
 from pathlib import Path
@@ -128,8 +129,28 @@ class QuickClipApp:
     def open_youtube(self):
         open_youtube_upload()
 
+    def _start_hotkey_listener(self):
+        """Spawns a background listener for the F10 global hotkey."""
+        def listener():
+            user32 = ctypes.windll.user32
+            VK_F10 = 0x79
+            was_pressed = False
+            while True:
+                time.sleep(0.05)
+                try:
+                    is_pressed = bool(user32.GetAsyncKeyState(VK_F10) & 0x8000)
+                    if is_pressed and not was_pressed:
+                        self.widget.root.after(0, self.toggle_record)
+                    was_pressed = is_pressed
+                except Exception:
+                    pass
+
+        t = threading.Thread(target=listener, daemon=True)
+        t.start()
+
     def run(self):
         threading.Thread(target=self._watch_captures, daemon=True).start()
+        self._start_hotkey_listener()
         self.widget.run()
 
 

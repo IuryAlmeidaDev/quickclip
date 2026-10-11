@@ -39,8 +39,8 @@ class FloatingRecorderWidget:
         self.root.title("QuickClip")
         self.root.overrideredirect(True)
         self.root.attributes("-topmost", True)
-        self.root.geometry("200x42+50+50")
-        self.root.configure(bg="#121214")
+        self.root.geometry("310x48+60+60")
+        self.root.configure(bg="#f59e0b")
 
         # Apply Win32 NOACTIVATE style so clicks don't steal game focus
         self.apply_win32_styles()
@@ -48,65 +48,112 @@ class FloatingRecorderWidget:
         # Dragging variables
         self._drag_data = {"x": 0, "y": 0}
 
-        # UI Layout
-        self.frame = tk.Frame(self.root, bg="#18181b", bd=1, relief="ridge")
-        self.frame.pack(fill="both", expand=True, padx=2, pady=2)
+        # UI Layout: Deep Obsidian Frame with Gold Accent Border
+        self.frame = tk.Frame(self.root, bg="#0d0e15", bd=0)
+        self.frame.pack(fill="both", expand=True, padx=1, pady=1)
 
+        # Brand / Game Tag
+        self.brand_frame = tk.Frame(self.frame, bg="#0d0e15")
+        self.brand_frame.pack(side="left", padx=(8, 2), pady=4)
+
+        self.lbl_brand = tk.Label(
+            self.brand_frame,
+            text="AION 2",
+            bg="#0d0e15",
+            fg="#f59e0b",
+            font=("Segoe UI", 8, "bold"),
+        )
+        self.lbl_brand.pack(anchor="w")
+
+        self.lbl_hotkey_hint = tk.Label(
+            self.brand_frame,
+            text="HOTKEY F10",
+            bg="#0d0e15",
+            fg="#38bdf8",
+            font=("Segoe UI", 6, "bold"),
+        )
+        self.lbl_hotkey_hint.pack(anchor="w")
+
+        # Record Button
         self.btn_record = tk.Button(
             self.frame,
             text="⚪ REC",
-            bg="#27272a",
+            bg="#2a1215",
             fg="#ef4444",
-            font=("Segoe UI", 10, "bold"),
+            font=("Segoe UI", 9, "bold"),
             relief="flat",
-            activebackground="#3f3f46",
-            activeforeground="#f87171",
+            activebackground="#450a0a",
+            activeforeground="#fca5a5",
             cursor="hand2",
             takefocus=False,
+            padx=6,
+            pady=2,
             command=self.on_toggle_record,
         )
-        self.btn_record.pack(side="left", padx=5, pady=4)
+        self.btn_record.pack(side="left", padx=4, pady=6)
 
+        # Status / Timer Pill
         self.lbl_status = tk.Label(
             self.frame,
             text="00:00",
-            bg="#18181b",
-            fg="#a1a1aa",
+            bg="#181a24",
+            fg="#10b981",
             font=("Segoe UI", 9, "bold"),
+            padx=6,
+            pady=2,
         )
-        self.lbl_status.pack(side="left", padx=4)
+        self.lbl_status.pack(side="left", padx=3, pady=6)
+
+        # Right Action Buttons
+        self.btn_close = tk.Button(
+            self.frame,
+            text="✕",
+            bg="#181a24",
+            fg="#64748b",
+            font=("Segoe UI", 8),
+            relief="flat",
+            cursor="hand2",
+            takefocus=False,
+            padx=4,
+            pady=2,
+            command=self.root.destroy,
+        )
+        self.btn_close.pack(side="right", padx=(2, 6))
 
         self.btn_folder = tk.Button(
             self.frame,
             text="📁",
-            bg="#18181b",
-            fg="#71717a",
+            bg="#181a24",
+            fg="#cbd5e1",
             font=("Segoe UI", 9),
             relief="flat",
             cursor="hand2",
             takefocus=False,
+            padx=4,
+            pady=2,
             command=self.on_open_folder,
         )
-        self.btn_folder.pack(side="right", padx=4)
+        self.btn_folder.pack(side="right", padx=2)
 
         self.btn_youtube = tk.Button(
             self.frame,
             text="▶",
-            bg="#18181b",
+            bg="#181a24",
             fg="#ef4444",
-            font=("Segoe UI", 9),
+            font=("Segoe UI", 9, "bold"),
             relief="flat",
             cursor="hand2",
             takefocus=False,
+            padx=4,
+            pady=2,
             command=self.on_open_youtube,
         )
         self.btn_youtube.pack(side="right", padx=2)
 
         # Dragging bindings
-        self.frame.bind("<Button-1>", self._start_drag)
-        self.frame.bind("<B1-Motion>", self._do_drag)
-        self.lbl_status.bind("<Button-1>", self._start_drag)
-        self.lbl_status.bind("<B1-Motion>", self._do_drag)
+        for w in (self.frame, self.brand_frame, self.lbl_brand, self.lbl_hotkey_hint, self.lbl_status):
+            w.bind("<Button-1>", self._start_drag)
+            w.bind("<B1-Motion>", self._do_drag)
 
     def apply_win32_styles(self):
         self.root.update_idletasks()
@@ -131,18 +178,18 @@ class FloatingRecorderWidget:
     def set_recording_state(self, is_recording: bool, time_str: str = "00:00"):
         if is_recording:
             self.btn_record.config(text="⏹ STOP", bg="#7f1d1d", fg="#fca5a5")
-            self.lbl_status.config(text=time_str, fg="#f87171")
+            self.lbl_status.config(text=time_str, bg="#450a0a", fg="#f87171")
         else:
-            self.btn_record.config(text="⚪ REC", bg="#27272a", fg="#ef4444")
-            self.lbl_status.config(text="Pronto", fg="#a1a1aa")
+            self.btn_record.config(text="⚪ REC", bg="#2a1215", fg="#ef4444")
+            self.lbl_status.config(text="Pronto", bg="#181a24", fg="#10b981")
 
     def set_processing_state(self):
-        self.btn_record.config(text="⏳", bg="#27272a", fg="#fbbf24")
-        self.lbl_status.config(text="Criando...", fg="#fbbf24")
+        self.btn_record.config(text="⏳", bg="#451a03", fg="#fbbf24")
+        self.lbl_status.config(text="Criando...", bg="#2d1a04", fg="#fbbf24")
 
     def set_ignored_state(self, message: str = "Muito curto"):
-        self.btn_record.config(text="⚪ REC", bg="#27272a", fg="#ef4444")
-        self.lbl_status.config(text=message, fg="#f87171")
+        self.btn_record.config(text="⚪ REC", bg="#2a1215", fg="#ef4444")
+        self.lbl_status.config(text=message, bg="#450a0a", fg="#f87171")
 
     def _start_drag(self, event):
         self._drag_data["x"] = event.x_root - self.root.winfo_x()

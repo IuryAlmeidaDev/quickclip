@@ -372,3 +372,13 @@ def test_main_function(mock_app_cls):
 
     mock_app_cls.assert_called_once()
     mock_instance.run.assert_called_once()
+
+
+@patch("quickclip.app.FloatingRecorderWidget")
+@patch("quickclip.app.threading.Thread")
+def test_quickclip_app_start_hotkey_listener(mock_thread_cls, mock_widget_cls):
+    app = QuickClipApp()
+    app._start_hotkey_listener()
+    mock_thread_cls.assert_called_once()
+    mock_thread_cls.return_value.start.assert_called_once()
+
