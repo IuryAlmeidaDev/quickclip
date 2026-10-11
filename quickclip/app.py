@@ -1,5 +1,6 @@
 import threading
 import time
+from pathlib import Path
 from quickclip.capture import find_latest_capture, trigger_game_dvr_record, wait_for_file_ready
 from quickclip.config import get_config
 from quickclip.processor import convert_to_shorts
@@ -12,11 +13,54 @@ class QuickClipApp:
         self.config = get_config()
         self.is_recording = False
         self.record_start_time = 0.0
+        self.processed_captures: set[str] = set()
+        self._init_existing_captures()
+
         self.widget = FloatingRecorderWidget(
             on_toggle_record=self.toggle_record,
             on_open_folder=self.open_output,
             on_open_youtube=self.open_youtube,
         )
+
+    def _init_existing_captures(self):
+        try:
+            if self.config.captures_dir.exists():
+                for f in self.config.captures_dir.glob("*.mp4"):
+                    self.processed_captures.add(f.name)
+        except Exception:
+            pass
+
+    def _watch_captures(self):
+        """Background watcher: converts ANY newly created GameDVR video automatically."""
+        while True:
+            time.sleep(1.5)
+            try:
+                if not self.config.captures_dir.exists():
+                    continue
+                for f in self.config.captures_dir.glob("*.mp4"):
+                    if f.name not in self.processed_captures:
+                        ready = wait_for_file_ready(f, timeout=15.0)
+                        if ready:
+                            self.processed_captures.add(f.name)
+                            self._process_single_capture(f)
+            except Exception:
+                pass
+
+    def _process_single_capture(self, capture_path: Path):
+        self.widget.root.after(0, self.widget.set_processing_state)
+        try:
+            short_path = convert_to_shorts(
+                capture_path,
+                self.config.output_dir,
+                self.config.ffmpeg_bin,
+                music_dir=self.config.music_dir,
+            )
+            open_output_folder(short_path)
+            self.widget.root.after(0, self.widget.set_recording_state, False)
+        except Exception as e:
+            print(f"Error processing capture: {e}")
+            self.widget.root.after(0, self.widget.set_ignored_state, "Erro FFmpeg")
+            self.widget.root.after(2500, self.widget.set_recording_state, False)
 
     def toggle_record(self):
         if not self.is_recording:
@@ -52,11 +96,20 @@ class QuickClipApp:
         time.sleep(1.0)
         latest = find_latest_capture(self.config.captures_dir, self.record_start_time)
         if not latest:
+            # Retry up to 8 times waiting for Windows GameDVR to flush the file to disk
+            for _ in range(8):
+                time.sleep(1.0)
+                latest = find_latest_capture(self.config.captures_dir, self.record_start_time)
+                if latest:
+                    break
+
+        if not latest:
             self.widget.root.after(0, self.widget.set_recording_state, False)
             return
 
         ready = wait_for_file_ready(latest, timeout=12.0)
         if ready:
+            self.processed_captures.add(latest.name)
             try:
                 short_path = convert_to_shorts(
                     latest,
@@ -65,7 +118,6 @@ class QuickClipApp:
                     music_dir=self.config.music_dir,
                 )
                 open_output_folder(short_path)
-
             except Exception as e:
                 print(f"Error processing capture: {e}")
         self.widget.root.after(0, self.widget.set_recording_state, False)
@@ -77,6 +129,7 @@ class QuickClipApp:
         open_youtube_upload()
 
     def run(self):
+        threading.Thread(target=self._watch_captures, daemon=True).start()
         self.widget.run()
 
 

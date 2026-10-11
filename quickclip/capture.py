@@ -34,12 +34,25 @@ def find_latest_capture(captures_dir: Path, after_time: float) -> Optional[Path]
         return None
 
     mp4_files = list(captures_dir.glob("*.mp4"))
-    candidates = [f for f in mp4_files if f.stat().st_mtime >= after_time - 1.0]
+    candidates = [f for f in mp4_files if f.stat().st_mtime >= after_time - 2.0]
     if not candidates:
         return None
 
     candidates.sort(key=lambda f: f.stat().st_mtime, reverse=True)
     return candidates[0]
+
+
+def wait_for_new_capture(
+    captures_dir: Path, after_time: float, timeout: float = 15.0, poll_interval: float = 0.5
+) -> Optional[Path]:
+    """Waits up to timeout seconds for a new capture file to appear in captures_dir."""
+    start = time.time()
+    while time.time() - start < timeout:
+        latest = find_latest_capture(captures_dir, after_time)
+        if latest:
+            return latest
+        time.sleep(poll_interval)
+    return None
 
 
 def wait_for_file_ready(

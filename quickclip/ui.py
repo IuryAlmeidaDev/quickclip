@@ -62,6 +62,7 @@ class FloatingRecorderWidget:
             activebackground="#3f3f46",
             activeforeground="#f87171",
             cursor="hand2",
+            takefocus=False,
             command=self.on_toggle_record,
         )
         self.btn_record.pack(side="left", padx=5, pady=4)
@@ -83,6 +84,7 @@ class FloatingRecorderWidget:
             font=("Segoe UI", 9),
             relief="flat",
             cursor="hand2",
+            takefocus=False,
             command=self.on_open_folder,
         )
         self.btn_folder.pack(side="right", padx=4)
@@ -95,6 +97,7 @@ class FloatingRecorderWidget:
             font=("Segoe UI", 9),
             relief="flat",
             cursor="hand2",
+            takefocus=False,
             command=self.on_open_youtube,
         )
         self.btn_youtube.pack(side="right", padx=2)
@@ -107,10 +110,23 @@ class FloatingRecorderWidget:
 
     def apply_win32_styles(self):
         self.root.update_idletasks()
-        hwnd = self.root.winfo_id()
+        child_hwnd = self.root.winfo_id()
         user32 = ctypes.windll.user32
-        style = user32.GetWindowLongW(hwnd, GWL_EXSTYLE)
-        user32.SetWindowLongW(hwnd, GWL_EXSTYLE, style | WS_EX_TOPMOST | WS_EX_TOOLWINDOW | WS_EX_NOACTIVATE)
+        try:
+            parent_hwnd = user32.GetParent(child_hwnd)
+        except Exception:
+            parent_hwnd = 0
+
+        targets = [parent_hwnd, child_hwnd] if parent_hwnd else [child_hwnd]
+
+        for h in targets:
+            try:
+                style = user32.GetWindowLongW(h, GWL_EXSTYLE)
+                user32.SetWindowLongW(
+                    h, GWL_EXSTYLE, style | WS_EX_TOPMOST | WS_EX_TOOLWINDOW | WS_EX_NOACTIVATE
+                )
+            except Exception:
+                pass
 
     def set_recording_state(self, is_recording: bool, time_str: str = "00:00"):
         if is_recording:
