@@ -1,3 +1,4 @@
+import sys
 from pathlib import Path
 from datetime import datetime
 from typing import Optional
@@ -6,6 +7,21 @@ import logging
 import random
 
 logger = logging.getLogger(__name__)
+
+
+def _get_subprocess_hidden_kwargs() -> dict:
+    """Returns kwargs to ensure background execution without console windows on Windows."""
+    kwargs = {}
+    if sys.platform == "win32":
+        if hasattr(subprocess, "CREATE_NO_WINDOW"):
+            kwargs["creationflags"] = subprocess.CREATE_NO_WINDOW
+        if hasattr(subprocess, "STARTF_USESHOWWINDOW"):
+            startupinfo = subprocess.STARTUPINFO()
+            startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+            startupinfo.wShowWindow = 0  # SW_HIDE
+            kwargs["startupinfo"] = startupinfo
+    return kwargs
+
 
 
 def build_ffmpeg_filter(
@@ -84,7 +100,13 @@ def has_audio_stream(input_path: Path, ffmpeg_bin: Path) -> bool:
     """Checks whether the source video contains an audio stream."""
     try:
         cmd = [str(ffmpeg_bin), "-i", str(input_path)]
-        res = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        res = subprocess.run(
+            cmd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            **_get_subprocess_hidden_kwargs(),
+        )
         return "Audio:" in res.stderr
     except Exception:
         return False
@@ -152,7 +174,13 @@ def convert_to_shorts(
     ])
 
     logger.info("Executing FFmpeg viral shorts conversion: %s", " ".join(cmd))
-    result = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    result = subprocess.run(
+        cmd,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+        **_get_subprocess_hidden_kwargs(),
+    )
     if result.returncode != 0:
         logger.error("FFmpeg error: %s", result.stderr)
         raise RuntimeError(f"FFmpeg failed with code {result.returncode}: {result.stderr[-500:]}")

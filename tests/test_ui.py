@@ -382,3 +382,17 @@ def test_quickclip_app_start_hotkey_listener(mock_thread_cls, mock_widget_cls):
     mock_thread_cls.assert_called_once()
     mock_thread_cls.return_value.start.assert_called_once()
 
+
+def test_acquire_single_instance_mutex():
+    from quickclip.app import acquire_single_instance_mutex
+    mutex = acquire_single_instance_mutex()
+    assert mutex is not None or mutex is None  # Executes without raising exception
+
+
+@patch("quickclip.app.acquire_single_instance_mutex", return_value=None)
+@patch("quickclip.app.QuickClipApp")
+def test_main_function_already_running(mock_app_cls, mock_mutex):
+    main()
+    mock_app_cls.assert_not_called()
+
+

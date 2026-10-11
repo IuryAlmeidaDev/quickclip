@@ -137,3 +137,36 @@ def test_convert_to_shorts_failure(mock_run, tmp_path):
 
     with pytest.raises(RuntimeError, match="FFmpeg failed with code 1"):
         convert_to_shorts(input_file, output_dir, ffmpeg_bin)
+
+
+def test_subprocess_hidden_window_kwargs():
+    import sys
+    import subprocess
+    from quickclip.processor import _get_subprocess_hidden_kwargs
+
+    kwargs = _get_subprocess_hidden_kwargs()
+    if sys.platform == "win32":
+        assert "creationflags" in kwargs
+        assert kwargs["creationflags"] == subprocess.CREATE_NO_WINDOW
+        assert "startupinfo" in kwargs
+
+
+@patch("quickclip.processor.has_audio_stream", return_value=False)
+@patch("subprocess.run")
+def test_convert_to_shorts_passes_hidden_kwargs(mock_run, mock_has_audio, tmp_path):
+    import sys
+    import subprocess
+
+    mock_run.return_value = MagicMock(returncode=0, stdout="", stderr="")
+    input_file = tmp_path / "video.mp4"
+    input_file.write_text("dummy")
+    output_dir = tmp_path / "shorts"
+    ffmpeg_bin = Path("ffmpeg")
+
+    convert_to_shorts(input_file, output_dir, ffmpeg_bin)
+
+    call_kwargs = mock_run.call_args.kwargs
+    if sys.platform == "win32":
+        assert "creationflags" in call_kwargs
+        assert call_kwargs["creationflags"] == subprocess.CREATE_NO_WINDOW
+

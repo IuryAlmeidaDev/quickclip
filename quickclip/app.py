@@ -154,10 +154,33 @@ class QuickClipApp:
         self.widget.run()
 
 
+def acquire_single_instance_mutex():
+    """Ensures only a single instance of QuickClip runs across the entire system."""
+    if not hasattr(ctypes, "windll"):
+        return 1
+    try:
+        kernel32 = ctypes.windll.kernel32
+        mutex_name = "Global\\QuickClip_SingleInstance_App_Mutex"
+        mutex = kernel32.CreateMutexW(None, False, mutex_name)
+        last_error = kernel32.GetLastError()
+        ERROR_ALREADY_EXISTS = 183
+        if last_error == ERROR_ALREADY_EXISTS:
+            return None
+        return mutex
+    except Exception:
+        return 1
+
+
 def main():
+    mutex = acquire_single_instance_mutex()
+    if mutex is None:
+        print("QuickClip is already running.")
+        return
     app = QuickClipApp()
+    app._single_instance_mutex = mutex
     app.run()
 
 
 if __name__ == "__main__":
     main()
+
