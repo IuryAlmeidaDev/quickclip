@@ -9,4 +9,8 @@ def test_config_paths():
     assert Path(cfg.output_dir).name == "shorts"
     assert Path(cfg.music_dir).exists()
     assert Path(cfg.music_dir).name == "music"
+    assert Path(cfg.base_dir).exists()
+    assert cfg.client_secrets_file.name == "client_secrets.json"
+    assert cfg.token_file.name == "token.json"
+
 

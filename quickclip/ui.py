@@ -29,17 +29,19 @@ class FloatingRecorderWidget:
         on_toggle_record: Callable[[], None],
         on_open_folder: Callable[[], None],
         on_open_youtube: Optional[Callable[[], None]] = None,
+        on_upload_youtube: Optional[Callable[[], None]] = None,
         root: Optional[Union[tk.Tk, tk.Toplevel]] = None,
     ):
         self.root = root if root is not None else tk.Tk()
         self.on_toggle_record = on_toggle_record
         self.on_open_folder = on_open_folder
-        self.on_open_youtube = on_open_youtube if on_open_youtube is not None else (lambda: None)
+        self.on_upload_youtube = on_upload_youtube or on_open_youtube or (lambda: None)
+        self.on_open_youtube = self.on_upload_youtube
 
         self.root.title("QuickClip")
         self.root.overrideredirect(True)
         self.root.attributes("-topmost", True)
-        self.root.geometry("310x48+60+60")
+        self.root.geometry("325x48+60+60")
         self.root.configure(bg="#f59e0b")
 
         # Apply Win32 NOACTIVATE style so clicks don't steal game focus
@@ -137,7 +139,7 @@ class FloatingRecorderWidget:
 
         self.btn_youtube = tk.Button(
             self.frame,
-            text="▶",
+            text="🚀",
             bg="#181a24",
             fg="#ef4444",
             font=("Segoe UI", 9, "bold"),
@@ -146,7 +148,7 @@ class FloatingRecorderWidget:
             takefocus=False,
             padx=4,
             pady=2,
-            command=self.on_open_youtube,
+            command=self.on_upload_youtube,
         )
         self.btn_youtube.pack(side="right", padx=2)
 
@@ -190,6 +192,15 @@ class FloatingRecorderWidget:
     def set_ignored_state(self, message: str = "Muito curto"):
         self.btn_record.config(text="⚪ REC", bg="#2a1215", fg="#ef4444")
         self.lbl_status.config(text=message, bg="#450a0a", fg="#f87171")
+
+    def set_uploading_state(self, percent: int = 0):
+        self.btn_record.config(text="🚀", bg="#1e1b4b", fg="#818cf8")
+        self.lbl_status.config(text=f"Up {percent}%", bg="#1e1b4b", fg="#818cf8")
+
+    def set_uploaded_state(self, message: str = "Postado!"):
+        self.btn_record.config(text="✓", bg="#064e3b", fg="#34d399")
+        self.lbl_status.config(text=message, bg="#064e3b", fg="#34d399")
+
 
     def _start_drag(self, event):
         self._drag_data["x"] = event.x_root - self.root.winfo_x()

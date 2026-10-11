@@ -9,6 +9,9 @@ class Config:
     output_dir: Path
     music_dir: Path
     ffmpeg_bin: Path
+    base_dir: Path
+    client_secrets_file: Path
+    token_file: Path
 
 def get_config() -> Config:
     user_home = Path.home()
@@ -37,4 +40,8 @@ def get_config() -> Config:
         output_dir=output_dir,
         music_dir=music_dir,
         ffmpeg_bin=ffmpeg_bin,
+        base_dir=base_dir,
+        client_secrets_file=base_dir / "client_secrets.json",
+        token_file=base_dir / "token.json",
     )
+

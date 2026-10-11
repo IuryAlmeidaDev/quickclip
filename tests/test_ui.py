@@ -77,10 +77,11 @@ def test_floating_recorder_widget_init(mock_callbacks, toplevel_root):
         assert widget.btn_record["text"] == "⚪ REC"
         assert widget.lbl_status["text"] == "00:00"
         assert widget.btn_folder["text"] == "📁"
-        assert widget.btn_youtube["text"] == "▶"
+        assert widget.btn_youtube["text"] == "🚀"
         assert widget.on_toggle_record == toggle_cb
         assert widget.on_open_folder == folder_cb
         assert widget.on_open_youtube == youtube_cb
+
 
 
 def test_floating_recorder_widget_default_root(mock_callbacks):
@@ -135,10 +136,21 @@ def test_floating_recorder_widget_state_transitions(mock_callbacks, toplevel_roo
         assert widget.btn_record["text"] == "⏳"
         assert widget.lbl_status["text"] == "Criando..."
 
+        # Transition to Uploading
+        widget.set_uploading_state(75)
+        assert widget.btn_record["text"] == "🚀"
+        assert "75%" in widget.lbl_status["text"]
+
+        # Transition to Uploaded
+        widget.set_uploaded_state("No ar!")
+        assert widget.btn_record["text"] == "✓"
+        assert widget.lbl_status["text"] == "No ar!"
+
         # Transition to Idle
         widget.set_recording_state(False)
         assert widget.btn_record["text"] == "⚪ REC"
         assert widget.lbl_status["text"] == "Pronto"
+
 
 
 def test_floating_recorder_widget_drag(mock_callbacks, toplevel_root):
@@ -192,8 +204,9 @@ def test_quickclip_app_init(mock_get_cfg, mock_widget_cls):
     mock_widget_cls.assert_called_once_with(
         on_toggle_record=app.toggle_record,
         on_open_folder=app.open_output,
-        on_open_youtube=app.open_youtube,
+        on_upload_youtube=app.upload_youtube,
     )
+
 
 
 @patch("quickclip.app.FloatingRecorderWidget")
@@ -354,6 +367,59 @@ def test_quickclip_app_open_youtube(mock_open_yt, mock_widget_cls):
     app = QuickClipApp()
     app.open_youtube()
     mock_open_yt.assert_called_once()
+
+
+@patch("quickclip.app.FloatingRecorderWidget")
+def test_quickclip_app_upload_youtube_no_shorts(mock_widget_cls, tmp_path):
+    app = QuickClipApp()
+    app.config = MagicMock(output_dir=tmp_path / "empty_shorts")
+    app._upload_worker()
+    app.widget.root.after.assert_called()
+
+
+@patch("quickclip.app.FloatingRecorderWidget")
+@patch("quickclip.uploader.upload_short_video")
+@patch("quickclip.publisher.copy_to_clipboard")
+def test_quickclip_app_upload_youtube_success(mock_copy_clip, mock_upload_fn, mock_widget_cls, tmp_path):
+    shorts_dir = tmp_path / "shorts"
+    shorts_dir.mkdir()
+    sample_short = shorts_dir / "clip_short.mp4"
+    sample_short.write_bytes(b"dummy")
+
+    app = QuickClipApp()
+    app.config = MagicMock(
+        output_dir=shorts_dir,
+        client_secrets_file=tmp_path / "secrets.json",
+        token_file=tmp_path / "token.json",
+    )
+    mock_upload_fn.return_value = {"id": "123", "url": "https://youtube.com/shorts/123"}
+
+    app._upload_worker()
+
+    mock_upload_fn.assert_called_once()
+    app.widget.root.after.assert_called()
+
+
+@patch("quickclip.app.FloatingRecorderWidget")
+@patch("quickclip.app.open_youtube_upload")
+@patch("quickclip.uploader.upload_short_video", side_effect=FileNotFoundError("client_secrets missing"))
+def test_quickclip_app_upload_youtube_missing_credentials(mock_upload_fn, mock_open_yt, mock_widget_cls, tmp_path):
+    shorts_dir = tmp_path / "shorts"
+    shorts_dir.mkdir()
+    sample_short = shorts_dir / "clip_short.mp4"
+    sample_short.write_bytes(b"dummy")
+
+    app = QuickClipApp()
+    app.config = MagicMock(
+        output_dir=shorts_dir,
+        client_secrets_file=tmp_path / "missing_secrets.json",
+        token_file=tmp_path / "token.json",
+    )
+
+    app._upload_worker()
+
+    mock_open_yt.assert_called_once()
+
 
 
 @patch("quickclip.app.FloatingRecorderWidget")

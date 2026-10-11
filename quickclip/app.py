@@ -20,7 +20,7 @@ class QuickClipApp:
         self.widget = FloatingRecorderWidget(
             on_toggle_record=self.toggle_record,
             on_open_folder=self.open_output,
-            on_open_youtube=self.open_youtube,
+            on_upload_youtube=self.upload_youtube,
         )
 
     def _init_existing_captures(self):
@@ -128,6 +128,65 @@ class QuickClipApp:
 
     def open_youtube(self):
         open_youtube_upload()
+
+    def upload_youtube(self):
+        """Finds the most recent short and uploads it directly to YouTube in the background."""
+        threading.Thread(target=self._upload_worker, daemon=True).start()
+
+    def _upload_worker(self):
+        shorts_dir = self.config.output_dir
+        if not shorts_dir.exists():
+            self.widget.root.after(0, self.widget.set_ignored_state, "Sem Shorts")
+            self.widget.root.after(2500, self.widget.set_recording_state, False)
+            return
+
+        shorts_files = [f for f in shorts_dir.glob("*.mp4") if f.is_file()]
+        if not shorts_files:
+            self.widget.root.after(0, self.widget.set_ignored_state, "Sem Shorts")
+            self.widget.root.after(2500, self.widget.set_recording_state, False)
+            return
+
+        shorts_files.sort(key=lambda f: f.stat().st_mtime, reverse=True)
+        latest_short = shorts_files[0]
+
+        self.widget.root.after(0, self.widget.set_uploading_state, 0)
+
+        def on_progress(percent: int):
+            self.widget.root.after(0, self.widget.set_uploading_state, percent)
+
+        try:
+            from quickclip.uploader import upload_short_video
+            from quickclip.publisher import copy_to_clipboard
+
+            res = upload_short_video(
+                video_path=latest_short,
+                client_secrets_file=self.config.client_secrets_file,
+                token_file=self.config.token_file,
+                title="AION 2 — Batalha Épica! #Shorts",
+                description="Momento insano gravado com QuickClip! #Shorts #AION2 #MMORPG #Gaming",
+                tags=["Shorts", "AION2", "Aion", "MMORPG", "Gaming"],
+                privacy_status="public",
+                progress_callback=on_progress,
+            )
+
+            short_url = res.get("url", "")
+            if short_url:
+                self.widget.root.after(0, copy_to_clipboard, short_url)
+
+            self.widget.root.after(0, self.widget.set_uploaded_state, "No ar!")
+            self.widget.root.after(4000, self.widget.set_recording_state, False)
+
+        except FileNotFoundError:
+            # client_secrets.json not found: notify and open studio
+            print("client_secrets.json não encontrado. Abrindo Studio no navegador...")
+            self.widget.root.after(0, self.widget.set_ignored_state, "Sem Login")
+            open_youtube_upload()
+            self.widget.root.after(3000, self.widget.set_recording_state, False)
+        except Exception as e:
+            print(f"Erro no upload do YouTube: {e}")
+            self.widget.root.after(0, self.widget.set_ignored_state, "Erro Up")
+            self.widget.root.after(3000, self.widget.set_recording_state, False)
+
 
     def _start_hotkey_listener(self):
         """Spawns a background listener for the F10 global hotkey."""

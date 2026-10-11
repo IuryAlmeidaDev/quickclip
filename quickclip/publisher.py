@@ -28,3 +28,18 @@ def open_output_folder(path: Union[Path, str]) -> None:
 def open_youtube_upload() -> None:
     """Opens the YouTube Studio upload page in the default web browser."""
     webbrowser.open("https://studio.youtube.com/channel/UC/videos/upload?d=ud")
+
+
+def copy_to_clipboard(text: str) -> bool:
+    """Copies text to the system clipboard using tkinter or fallback."""
+    try:
+        import tkinter as tk
+        root = getattr(tk, "_default_root", None)
+        if root is not None:
+            root.clipboard_clear()
+            root.clipboard_append(text)
+            return True
+    except Exception:
+        pass
+    return False
+

@@ -49,27 +49,44 @@ Com o QuickClip, você tem uma mini barra flutuante translúcida no canto da tel
 ### 🛡️ Trava de Cliques Acidentais
 - Gravações com menos de 2 segundos são descartadas automaticamente (status *"Muito curto"*), evitando poluir o disco com cliques por engano.
 
-### 🚀 Acesso Imediato & YouTube Studio
-- Botão dedicado de pasta `[ 📁 ]` para abrir a pasta de clipes finalizados no Windows Explorer.
-- Botão dedicado do YouTube `[ ▶ ]` que abre diretamente a página de upload do YouTube Studio no navegador.
+### 🚀 Upload Direto no YouTube com 1 Clique (YouTube Data API v3)
+- Botão dedicado de publicação `[ 🚀 ]`:
+  - **100% Automático:** Ao clicar, envia o último Shorts gerado diretamente para o seu canal do YouTube em segundo plano com tags (`#Shorts`, `#AION2`), categoria Gaming e privacidade pública.
+  - O link do vídeo é copiado automaticamente para a sua área de transferência (`Ctrl + V`).
+  - **Fallback Inteligente:** Caso ainda não tenha configurado as credenciais da API, o botão abre instantaneamente o YouTube Studio no navegador.
+
+### ⌨️ Atalho Global de Teclado (F10)
+- Aperte **`F10`** em qualquer momento durante a gameplay para iniciar ou parar a gravação sem encostar no mouse.
 
 ---
 
-## 🕹️ Interface do HUD
+## 🕹️ Interface do HUD Gamer
 
 ```
-┌──────────────────────────────────────────────────┐
-│  [ ⚪ REC ]    00:00        [ 📁 ]    [ ▶ ]      │
-└──────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────┐
+│  AION 2 [F10]   [ ⚪ REC ]   00:00      [ 🚀 ]   [ 📁 ]   [ ✕ ] │
+└─────────────────────────────────────────────────────────────┘
 ```
 
 | Elemento | Ação ao Clicar | Descrição |
 | :--- | :--- | :--- |
-| **`[ ⚪ REC ]`** | Clique esquerdo | Inicia a gravação na hora. Vira `⏹ STOP` com tempo ativo. |
-| **`[ ⏹ STOP ]`** | Clique esquerdo | Para a gravação e inicia o processamento do Shorts (`⏳ Criando...`). |
-| **`[ 📁 ]`** | Clique esquerdo | Abre o diretório `output/shorts/` com o vídeo selecionado. |
-| **`[ ▶ ]`** | Clique esquerdo | Abre a aba de upload do YouTube Studio no seu navegador. |
+| **`[ ⚪ REC ]`** | Clique esquerdo (ou `F10`) | Inicia a gravação na hora. Vira `⏹ STOP` com tempo ativo. |
+| **`[ ⏹ STOP ]`** | Clique esquerdo (ou `F10`) | Para a gravação e inicia a criação do Shorts (`⏳ Criando...`). |
+| **`[ 🚀 ]`** | Clique esquerdo | **Posta o Shorts direto no YouTube** em segundo plano e copia o link. |
+| **`[ 📁 ]`** | Clique esquerdo | Abre a pasta `output/shorts/` com os clipes finalizados. |
+| **`[ ✕ ]`** | Clique esquerdo | Encerra o widget flutuante. |
 | **Barra do HUD** | Arrastar | Move o HUD suavemente para qualquer canto da tela. |
+
+---
+
+## 🔑 Como Ativar a Postagem 100% Automática no YouTube
+
+Para o botão `[ 🚀 ]` postar diretamente no seu canal sem precisar abrir o navegador:
+1. Acesse o [Google Cloud Console](https://console.cloud.google.com/).
+2. Crie um projeto novo (ex: `QuickClip`) e ative a **YouTube Data API v3**.
+3. Em **Credenciais**, crie um **ID do cliente OAuth** (Tipo: *Aplicativo para Computador* / *Desktop App*).
+4. Baixe o arquivo JSON renomeie para **`client_secrets.json`** e coloque na pasta do QuickClip (`C:\Users\iuryc\quickclip\client_secrets.json`).
+5. No primeiro clique em `[ 🚀 ]`, o navegador abrirá uma única vez para você autorizar o seu canal. A partir daí, o token fica salvo em `token.json` e todas as postagens serão **100% no piloto automático** com 1 clique!
 
 ---
 
@@ -79,24 +96,15 @@ Com o QuickClip, você tem uma mini barra flutuante translúcida no canto da tel
 - **Windows 10 ou 11**
 - **Python 3.12+**
 
-### 1. Clonar o repositório
+### 1. Iniciar pelo Executável Standalone
+Basta dar dois cliques no atalho **`QuickClip.lnk`** na sua Área de Trabalho ou rodar:
 ```powershell
-git clone https://github.com/IuryAlmeidaDev/quickclip.git
-cd quickclip
+.\QuickClip.exe
 ```
 
-### 2. Instalar dependências
+*Ou via código-fonte:*
 ```powershell
 pip install -r requirements.txt
-```
-
-### 3. Iniciar o aplicativo
-Basta dar dois cliques no executável de lote:
-```powershell
-.\run.bat
-```
-*Ou via linha de comando:*
-```powershell
 python -m quickclip.app
 ```
 
@@ -104,10 +112,11 @@ python -m quickclip.app
 
 ## 🧪 Testes Automatizados
 
-O projeto possui **37 testes automatizados** cobrindo todos os módulos (configuração, motor de captura, processador de vídeo, interface gráfica e threads do pipeline):
+O projeto conta com **56 testes automatizados** cobrindo todos os módulos (configuração, motor de captura, processador de vídeo, interface gráfica, hotkey F10, upload no YouTube e concorrência):
 
 ```powershell
 python -m pytest tests/ -v
+
 ```
 
 ---

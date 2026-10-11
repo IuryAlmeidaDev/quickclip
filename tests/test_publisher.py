@@ -44,3 +44,11 @@ def test_open_youtube_upload():
         mock_web_open.assert_called_once_with(
             "https://studio.youtube.com/channel/UC/videos/upload?d=ud"
         )
+
+
+def test_copy_to_clipboard():
+    from quickclip.publisher import copy_to_clipboard
+    # Test fallback / default behavior without exceptions
+    res = copy_to_clipboard("test_link")
+    assert isinstance(res, bool)
+
