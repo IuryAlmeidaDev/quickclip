@@ -56,7 +56,7 @@ class QuickClipApp:
                 short_path = convert_to_shorts(latest, self.config.output_dir, self.config.ffmpeg_bin)
                 open_output_folder(short_path)
             except Exception as e:
-                print(f"Erro ao processar: {e}")
+                print(f"Error processing capture: {e}")
         self.widget.root.after(0, self.widget.set_recording_state, False)
 
     def open_output(self):

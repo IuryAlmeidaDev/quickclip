@@ -80,12 +80,12 @@ def test_floating_recorder_widget_init(mock_callbacks, toplevel_root):
 
 def test_floating_recorder_widget_default_root(mock_callbacks):
     toggle_cb, folder_cb = mock_callbacks
-    with patch("ctypes.windll.user32"):
+    with patch("ctypes.windll.user32"), patch("quickclip.ui.tk.Tk") as mock_tk_cls:
+        mock_root = MagicMock()
+        mock_tk_cls.return_value = mock_root
         widget = FloatingRecorderWidget(on_toggle_record=toggle_cb, on_open_folder=folder_cb)
-        try:
-            assert isinstance(widget.root, tk.Tk)
-        finally:
-            widget.root.destroy()
+        assert widget.root == mock_root
+        mock_tk_cls.assert_called_once()
 
 
 def test_floating_recorder_widget_apply_win32_styles(mock_callbacks, toplevel_root):
