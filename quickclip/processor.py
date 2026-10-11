@@ -11,25 +11,49 @@ logger = logging.getLogger(__name__)
 def build_ffmpeg_filter(
     target_width: int = 1080,
     target_height: int = 1920,
-    title: str = "AION BOSS BATTLE",
+    game_title: str = "AION 2",
+    subtitle: str = "EPIC BOSS BATTLE",
+    title: Optional[str] = None,
 ) -> str:
     """Build FFmpeg complex filter chain for viral high-retention 9:16 gaming Shorts."""
     # Split into 3 layers:
     # 1. Background: cropped/scaled to 1080x1920 with dark blur
     # 2. Upper half: Action zoom focused on character & boss combat
     # 3. Lower half: Overview gameplay with HUD, health bars, and skills
-    # 4. Top header: High-conversion bold gamer title text
-    safe_title = title.replace("'", "").replace(":", "")
+    # 4. Top header: Obsidian gaming badge with gold double-border & glowing titles
+    # 5. Divider: Golden separator line dividing zoom action and HUD overview
+    if title is not None:
+        subtitle = title
+
+    safe_game = " ".join(game_title.strip().replace("'", "").replace(":", ""))
+    safe_sub = subtitle.replace("'", "").replace(":", "")
+
+    header_box = (
+        "drawbox=x=(w-880)/2:y=40:w=880:h=136:color=black@0.78:t=fill,"
+        "drawbox=x=(w-880)/2:y=40:w=880:h=136:color=#F59E0B@0.95:t=3,"
+        "drawbox=x=(w-868)/2:y=46:w=868:h=124:color=#B45309@0.5:t=1"
+    )
+    title_text = (
+        f"drawtext=text='—  {safe_game}  —':fontsize=30:fontcolor=#FDE047:"
+        "x=(w-text_w)/2:y=56:shadowcolor=black@0.9:shadowx=2:shadowy=2"
+    )
+    sub_text = (
+        f"drawtext=text='{safe_sub}':fontsize=54:fontcolor=white:"
+        "x=(w-text_w)/2:y=100:borderw=2:bordercolor=black:shadowcolor=black@0.9:shadowx=3:shadowy=3"
+    )
+    divider = "drawbox=x=(w-960)/2:y=1078:w=960:h=4:color=#F59E0B@0.75:t=fill"
+
     return (
         f"[0:v]split=3[bg_raw][zoom_raw][full_raw];"
         f"[bg_raw]scale={target_width}:{target_height}:force_original_aspect_ratio=increase,"
         f"crop={target_width}:{target_height},boxblur=25:5,colorchannelmixer=aa=1:rr=0.4:gg=0.4:bb=0.4[bg];"
         f"[zoom_raw]scale=2300:-2,crop={target_width}:860:(in_w-{target_width})/2:(in_h-860)/2[zoom_act];"
         f"[full_raw]scale={target_width}:-2[full_game];"
-        f"[bg][zoom_act]overlay=0:190[v1];"
+        f"[bg][zoom_act]overlay=0:200[v1];"
         f"[v1][full_game]overlay=0:1100[v2];"
-        f"[v2]drawtext=text='{safe_title}':fontsize=52:fontcolor=yellow:x=(w-text_w)/2:y=80:borderw=4:bordercolor=black[outv]"
+        f"[v2]{header_box},{title_text},{sub_text},{divider}[outv]"
     )
+
 
 
 def generate_output_filename(source_filename: str) -> str:
@@ -64,7 +88,9 @@ def convert_to_shorts(
     output_dir: Path,
     ffmpeg_bin: Path,
     music_dir: Optional[Path] = None,
-    title: str = "AION BOSS BATTLE",
+    game_title: str = "AION 2",
+    subtitle: str = "EPIC BOSS BATTLE",
+    title: Optional[str] = None,
 ) -> Path:
     """Converts input gameplay into a viral, high-retention 1080x1920 9:16 Short with audio mix."""
     if not input_path.exists():
@@ -74,7 +100,7 @@ def convert_to_shorts(
     out_name = generate_output_filename(input_path.name)
     output_path = output_dir / out_name
 
-    filter_v = build_ffmpeg_filter(1080, 1920, title=title)
+    filter_v = build_ffmpeg_filter(1080, 1920, game_title=game_title, subtitle=subtitle, title=title)
     music_track = get_random_music_track(music_dir)
     has_game_audio = has_audio_stream(input_path, ffmpeg_bin)
 

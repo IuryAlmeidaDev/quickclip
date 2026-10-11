@@ -11,10 +11,12 @@ from quickclip.publisher import (
 def test_prepare_shorts_metadata():
     meta = prepare_shorts_metadata("Aion_Boss_Fight.mp4")
     assert "title" in meta
+    assert "AION 2" in meta["title"]
     assert "description" in meta
     assert "tags" in meta
     assert "#Shorts" in meta["tags"]
     assert "#Aion" in meta["tags"]
+    assert "#AION2" in meta["tags"]
 
 
 def test_open_output_folder_dir(tmp_path):

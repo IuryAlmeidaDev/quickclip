@@ -11,14 +11,26 @@ from quickclip.processor import (
 
 
 def test_build_ffmpeg_filter():
-    filter_chain = build_ffmpeg_filter(target_width=1080, target_height=1920, title="AION BOSS BATTLE")
+    filter_chain = build_ffmpeg_filter(
+        target_width=1080,
+        target_height=1920,
+        game_title="AION 2",
+        subtitle="EPIC BOSS BATTLE",
+    )
     assert "split=3" in filter_chain
     assert "boxblur=25:5" in filter_chain
     assert "zoom_act" in filter_chain
     assert "full_game" in filter_chain
     assert "overlay" in filter_chain
     assert "drawtext" in filter_chain
-    assert "AION BOSS BATTLE" in filter_chain
+    assert "A I O N   2" in filter_chain
+    assert "EPIC BOSS BATTLE" in filter_chain
+    assert "1078" in filter_chain  # golden divider
+
+    # Backward compatibility check when title keyword argument is used
+    legacy_chain = build_ffmpeg_filter(title="CUSTOM BATTLE")
+    assert "CUSTOM BATTLE" in legacy_chain
+
 
 
 def test_generate_output_filename():

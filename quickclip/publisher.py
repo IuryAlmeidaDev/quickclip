@@ -9,9 +9,9 @@ from typing import Any, Dict, Union
 def prepare_shorts_metadata(video_name: str) -> Dict[str, Any]:
     """Generates suggested metadata (title, description, tags) for YouTube Shorts."""
     return {
-        "title": "Aion Gameplay Highlight #Shorts",
-        "description": "Momentos insanos de Aion! #Aion #MMORPG #Shorts #Gaming",
-        "tags": ["#Shorts", "#Aion", "#MMORPG", "#Gaming"],
+        "title": "AION 2 Gameplay Highlight #Shorts",
+        "description": "Momentos insanos de AION 2! #AION2 #Aion #MMORPG #Shorts #Gaming",
+        "tags": ["#Shorts", "#AION2", "#Aion", "#MMORPG", "#Gaming"],
     }
 
 
