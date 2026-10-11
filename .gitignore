@@ -2,3 +2,10 @@ __pycache__/
 *.py[cod]
 *$py.class
 .pytest_cache/
+.superpowers/
+.vscode/
+.idea/
+output/shorts/*.mp4
+*.mp4
+venv/
+.venv/

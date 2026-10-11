@@ -1,125 +1,123 @@
-# QuickClip 🎬
+# 🎬 QuickClip
 
-**QuickClip** is a lightweight, zero-distraction desktop tool designed for gamers to instantly record gameplay highlights (optimized for *Aion* and other PC games) and automatically produce vertical YouTube Shorts (1080x1920, 9:16) with blurred backgrounds in one seamless click.
+<div align="center">
 
----
+![Language](https://img.shields.io/badge/Language-Python%203.12-3776AB?style=for-the-badge&logo=python)
+![GUI](https://img.shields.io/badge/GUI-Win32%20%7C%20Tkinter-0078D6?style=for-the-badge&logo=windows)
+![Encoder](https://img.shields.io/badge/Encoder-Windows%20GameDVR%20(GPU)-107C41?style=for-the-badge&logo=xbox)
+![Processing](https://img.shields.io/badge/Processing-FFmpeg%20v7.1-007808?style=for-the-badge&logo=ffmpeg)
+![Output](https://img.shields.io/badge/Output-Shorts%209%3A16-FF0000?style=for-the-badge&logo=youtube)
+![Platform](https://img.shields.io/badge/OS-Windows%2010%2F11-0078D6?style=for-the-badge&logo=windows)
+![Anti-Cheat Safe](https://img.shields.io/badge/Anti--Cheat-100%25%20Safe-brightgreen?style=for-the-badge)
+![License](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)
 
-## Key Features
+**Mini-overlay gamer flutuante de gravação instantânea e conversor automático de jogadas para YouTube Shorts (9:16) no Windows.**
 
-- **One-Click Recording**: Start and stop recordings directly from an unobtrusive, always-on-top floating HUD.
-- **Accidental Recording Guard**: Quick recordings under 2 seconds are automatically ignored (`Muito curto`), preventing accidental clicks from triggering unnecessary video encoding.
-- **No Focus Stealing (`WS_EX_NOACTIVATE`)**: The widget utilizes native Windows API styles so clicking the HUD buttons never steals keyboard or mouse focus from *Aion*, preventing game window minimization or input interruptions.
-- **Automated YouTube Shorts Pipeline**:
-  - Automatically captures game clips via Windows GameDVR (`Win+Alt+R`).
-  - Converts horizontal 16:9 gameplay footage into high-definition vertical 9:16 Shorts (1080x1920).
-  - Creates a dynamic blurred and darkened background (`boxblur=20:5`, `colorchannelmixer`) behind centered, crystal-clear 1080p game footage.
-  - Encoded with `yuv420p` pixel format and `+faststart` movflags for instant streaming and universal mobile compatibility.
-- **Instant Output & Publishing Integration**:
-  - Output clips are automatically saved to `output/shorts/` with clean timestamps (`<name>_YYYYMMDD_HHMMSS_short.mp4`).
-  - Automatically opens Windows Explorer highlighting newly rendered videos.
-  - Dedicated folder button (`📁`) on the widget to open the shorts directory at any time.
-  - Direct YouTube button (`▶`) to instantly open YouTube Studio's upload modal in your default browser.
+</div>
 
 ---
 
-## Requirements
+## 🌟 O que é o QuickClip?
 
-1. **Windows 10 / 11** with **Xbox Game Bar / GameDVR** enabled (default shortcut: `Win + Alt + R`).
-2. **Python 3.10+** (Python 3.12 recommended).
-3. **FFmpeg** installed and accessible via system `PATH` (or auto-provided by `imageio-ffmpeg`).
-4. Python dependencies in `requirements.txt`:
-   ```bash
-   pip install -r requirements.txt
-   ```
+O **QuickClip** foi criado para resolver um problema comum de quem joga MMORPGs e outros jogos de PC (como *Aion*): você está enfrentando um Boss ou completando uma missão épica e quer gravar na hora, mas abrir menus pesados ou configurar programas complexos atrapalha a gameplay.
+
+Com o QuickClip, você tem uma mini barra flutuante translúcida no canto da tela. Você clica em **REC**, mata o boss, clica em **STOP**, e o aplicativo cuida de tudo:
+1. Grava a 60 FPS com áudio do jogo usando o encoder nativo da sua GPU.
+2. Não rouba o foco do jogo (`WS_EX_NOACTIVATE`) — você continua clicando e usando habilidades sem travar a mira.
+3. Converte a gravação widescreen (16:9) em um **Shorts vertical (9:16)** estilizado com fundo desfocado em Full HD (1080x1920).
+4. Disponibiliza o vídeo pronto e um botão direto para envio no **YouTube Studio**.
 
 ---
 
-## Getting Started
+## ⚡ Recursos Principais
 
-### 1. Launching QuickClip
+### 🎯 Gravação com 1 Clique (Zero Lag no Jogo)
+- Dispara silenciosamente o acelerador de vídeo por hardware do Windows GameDVR (`Win + Alt + R`).
+- Usa os chips dedicados da placa de vídeo (NVENC / AMF / QuickSync) com 60 FPS e captura de áudio límpida, sem roubar processamento do jogo.
 
-You can launch QuickClip in either of two ways:
+### 🎬 Pipeline Automático para YouTube Shorts (9:16)
+- Assim que você encerra a gravação, o **FFmpeg** embutido formata o clipe para o padrão das redes verticais:
+  - **Centro:** Gameplay original nítida sem distorção.
+  - **Fundo:** Preenchimento vertical inteligente com desfoque dinâmico (`boxblur=20:5`) e escurecimento suave para dar destaque à ação.
+  - **Compatibilidade Mobile:** Codificação H.264 (`-pix_fmt yuv420p`) com `-movflags +faststart` para carregamento imediato em smartphones.
 
-- **Option A (Recommended)**: Double-click `run.bat` in the project root.
-- **Option B (Terminal)**:
-  ```bash
-  python -m quickclip.app
-  ```
+### 🧲 Ergonomia e Foco Gamer (`WS_EX_NOACTIVATE`)
+- O HUD utiliza atributos avançados da Win32 API (`WS_EX_TOPMOST | WS_EX_TOOLWINDOW | WS_EX_NOACTIVATE`).
+- Clicar no botão **NÃO transfere o foco do Windows para o aplicativo**. O cursor do jogo, rotação de câmera e atalhos continuam respondendo no jogo no mesmo milissegundo.
+- Arraste suave com o mouse para posicionar o HUD em qualquer canto do monitor.
 
-Once launched, a compact, dark-mode floating HUD appears on your screen:
+### 🛡️ Trava de Cliques Acidentais
+- Gravações com menos de 2 segundos são descartadas automaticamente (status *"Muito curto"*), evitando poluir o disco com cliques por engano.
+
+### 🚀 Acesso Imediato & YouTube Studio
+- Botão dedicado de pasta `[ 📁 ]` para abrir a pasta de clipes finalizados no Windows Explorer.
+- Botão dedicado do YouTube `[ ▶ ]` que abre diretamente a página de upload do YouTube Studio no navegador.
+
+---
+
+## 🕹️ Interface do HUD
 
 ```
-+---------------------------------------+
-|  ⚪ REC    00:00              ▶   📁  |
-+---------------------------------------+
+┌──────────────────────────────────────────────────┐
+│  [ ⚪ REC ]    00:00        [ 📁 ]    [ ▶ ]      │
+└──────────────────────────────────────────────────┘
 ```
 
-- **Drag to Move**: Click and drag anywhere on the widget background or timer label to place it anywhere on your screen.
-- **▶ Button**: Open YouTube Studio upload directly in your default browser.
-- **📁 Button**: Open the `output/shorts/` folder in Windows Explorer.
+| Elemento | Ação ao Clicar | Descrição |
+| :--- | :--- | :--- |
+| **`[ ⚪ REC ]`** | Clique esquerdo | Inicia a gravação na hora. Vira `⏹ STOP` com tempo ativo. |
+| **`[ ⏹ STOP ]`** | Clique esquerdo | Para a gravação e inicia o processamento do Shorts (`⏳ Criando...`). |
+| **`[ 📁 ]`** | Clique esquerdo | Abre o diretório `output/shorts/` com o vídeo selecionado. |
+| **`[ ▶ ]`** | Clique esquerdo | Abre a aba de upload do YouTube Studio no seu navegador. |
+| **Barra do HUD** | Arrastar | Move o HUD suavemente para qualquer canto da tela. |
 
 ---
 
-## How to Record While Playing Aion
+## 🛠️ Como Executar
 
-1. **Launch Aion** (Borderless Windowed or Windowed mode recommended for overlay visibility).
-2. **Start Recording**:
-   - Click `⚪ REC` on the QuickClip HUD when combat or an epic moment begins.
-   - The HUD transforms to `⏹ STOP` with a live red timer counting elapsed time (`MM:SS`).
-   - QuickClip triggers the Windows GameDVR recording shortcut without minimizing or defocusing your game.
-3. **Stop & Convert**:
-   - Click `⏹ STOP` when the action ends.
-   - If recorded for less than 2 seconds, the recording is safely ignored (`Muito curto`).
-   - Otherwise, the widget displays `⏳ Criando...` while video conversion runs asynchronously in the background.
-   - Gameplay remains completely smooth and responsive—the UI never freezes.
-4. **Publish Your Short**:
-   - When processing completes, QuickClip automatically opens Windows Explorer highlighting the rendered file.
-   - Click `▶` on the HUD to jump straight to YouTube Studio's upload page.
-   - The HUD returns to `⚪ REC / Pronto` ready for your next clip.
+### Pré-requisitos
+- **Windows 10 ou 11**
+- **Python 3.12+**
 
----
-
-## Output Specifications
-
-| Property | Value |
-|---|---|
-| **Resolution** | 1080 x 1920 (9:16 Vertical Video) |
-| **Foreground Video** | 1080px wide centered uncropped native aspect ratio |
-| **Background** | 1080 x 1920 scaled, cropped, blurred, and darkened (`boxblur=20:5,colorchannelmixer=aa=1:rr=0.7:gg=0.7:bb=0.7`) |
-| **Video Codec** | H.264 (libx264) with `veryfast` preset and CRF 20 |
-| **Pixel Format & Flags**| `yuv420p`, `-movflags +faststart` (universal mobile streaming compatibility) |
-| **Audio** | AAC stereo 192kbps |
-| **Save Location** | `output/shorts/<name>_YYYYMMDD_HHMMSS_short.mp4` |
-
----
-
-## Project Structure
-
+### 1. Clonar o repositório
+```powershell
+git clone https://github.com/IuryAlmeidaDev/quickclip.git
+cd quickclip
 ```
-quickclip/
-├── quickclip/
-│   ├── app.py           # Application entrypoint & pipeline orchestrator
-│   ├── capture.py       # GameDVR trigger, file watcher & detection
-│   ├── config.py        # Config paths & environment management
-│   ├── processor.py     # FFmpeg 9:16 Shorts converter & filtergraph builder
-│   ├── publisher.py     # Windows Explorer & YouTube upload utilities
-│   └── ui.py            # Win32 non-activating floating HUD widget
-├── tests/               # Comprehensive automated test suite (37 unit tests)
-├── output/
-│   └── shorts/          # Rendered Shorts destination folder
-├── requirements.txt     # Project dependencies
-├── run.bat              # One-click Windows launcher
-└── README.md            # User guide & documentation
+
+### 2. Instalar dependências
+```powershell
+pip install -r requirements.txt
+```
+
+### 3. Iniciar o aplicativo
+Basta dar dois cliques no executável de lote:
+```powershell
+.\run.bat
+```
+*Ou via linha de comando:*
+```powershell
+python -m quickclip.app
 ```
 
 ---
 
-## Running Automated Tests
+## 🧪 Testes Automatizados
 
-To run the complete test suite:
+O projeto possui **37 testes automatizados** cobrindo todos os módulos (configuração, motor de captura, processador de vídeo, interface gráfica e threads do pipeline):
 
-```bash
+```powershell
 python -m pytest tests/ -v
 ```
 
-All 37 unit tests should execute and pass cleanly.
+---
+
+## 🛡️ Segurança Anti-Cheat
+
+O QuickClip **não injeta DLLs**, **não intercepta chamadas do DirectX/Vulkan/OpenGL** e não lê nem modifica a memória de nenhum jogo. Ele opera exclusivamente através das APIs oficiais do Windows Desktop (`WS_EX_LAYERED`, `keybd_event`), sendo **100% seguro** contra qualquer sistema anti-cheat (Easy Anti-Cheat, BattlEye, Vanguard, etc.).
+
+---
+
+## 📄 Licença
+
+Distribuído sob a licença [MIT](LICENSE). Desenvolvido por [Iury Almeida](https://github.com/IuryAlmeidaDev).
